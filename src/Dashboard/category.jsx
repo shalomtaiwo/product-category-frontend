@@ -1,8 +1,6 @@
 import React from "react";
-import { Input } from "antd";
-import { Card } from "antd";
-import {  Empty } from "antd";
-import axios from "axios";
+import { Card, Spin, Input, Empty } from "antd";
+import useAxios from "axios-hooks";
 
 const { Meta } = Card;
 const { Search } = Input;
@@ -12,29 +10,25 @@ const Category = () => {
 
 	const onSearch = (value, e) => {
 		e.preventDefault();
-		setSearchCat(value);
+		setSearchCat(value.charAt(0).toUpperCase() + value.slice(1));
 	};
 
-    const [category, setCategory] = React.useState([]);
+	const [{ data, loading, error }] = useAxios(
+		`http://localhost:8000/api/product.php?category=${searchCat}`
+	);
 
-	const handleAllCategory = React.useCallback((url, category, product) => {
-		axios
-			.get(url, {
-				params: {
-					category: category,
-					product: product,
-				},
-			})
-			.then(function (response) {
-				setCategory(response?.data);
-			})
-			.catch(function (error) {
-				console.log(error);
-			})
-			.finally(function () {
-				// always executed
-			});
-	}, []);
+	if (loading)
+		return (
+			<div>
+				<Spin
+					tip="Loading"
+					size="large"
+				>
+					<div className="content" />
+				</Spin>
+			</div>
+		);
+	if (error) return <p>Error!</p>;
 
 	return (
 		<div>
@@ -50,42 +44,51 @@ const Category = () => {
 
 				<div className="dashboard_cat">
 					{searchCat !== "" ? (
-						<Card
-							title={"ffdfd"}
-							// key={'fdfdfd'}
-						>
-							<div className="dashboard_col">
-								<Card
-									hoverable
-									style={{
-										width: 240,
-									}}
-									cover={
-										<img
-											alt="example"
-											src="https://via.placeholder.com/150"
-										/>
-									}
-								>
-									<Meta title={"ffdfdfd"} />
-								</Card>
-							</div>
-						</Card>
+						<div>
+							<Card title={searchCat}>
+								<div className="dashboard_col">
+									{data?.map((product, index) => {
+										return (
+											<div key={index}>
+												{!product?.name ? (
+													<h5>Not found</h5>
+												) : (
+													<Card
+														hoverable
+														style={{
+															width: 240,
+														}}
+														key={index}
+														cover={
+															<img
+																alt="example"
+																src="https://via.placeholder.com/150"
+															/>
+														}
+													>
+														<Meta title={product?.name} />
+													</Card>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							</Card>
+						</div>
 					) : (
 						<div className="empty_search">
-                            <Empty
-							image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
-							imageStyle={{
-								height: 60,
-							}}
-							description={
-								<span>
-									Start  <a href="#/">Searching</a>
-								</span>
-							}
-						>
-						</Empty>
-                        </div>
+							<Empty
+								image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
+								imageStyle={{
+									height: 60,
+								}}
+								description={
+									<span>
+										Start <a href="#/">Searching</a>
+									</span>
+								}
+							></Empty>
+						</div>
 					)}
 				</div>
 			</div>

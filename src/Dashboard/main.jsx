@@ -5,7 +5,6 @@ import { Card, Spin } from "antd";
 const { Meta } = Card;
 
 const Main = () => {
-	// const [category, setCategory] = React.useState([]);
 
 	const [{ data, loading, error }] = useAxios(
 		"http://localhost:8000/api/category.php"
