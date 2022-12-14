@@ -1,27 +1,28 @@
 import React from "react";
-import { Select, Spin, Card, Input } from "antd";
+import { Select, Card, Input, Result } from "antd";
 import useAxios from "axios-hooks";
+import { SmileOutlined } from "@ant-design/icons";
 
-const { Meta } = Card;
 const { Search } = Input;
 
 const Product = () => {
 	const [searchCat, setSearchCat] = React.useState("");
 	const [searchItem, setSearchItem] = React.useState("");
 	const [options, setOptions] = React.useState([]);
+	const [afterSearch, setAfterSearch] = React.useState(true);
 
-    const onSearch = (value, e) => {
+	const onSearch = (value, e) => {
 		e.preventDefault();
-		setSearchCat(value.charAt(0).toUpperCase() + value.slice(1));
+		setSearchItem(value.charAt(0).toUpperCase() + value.slice(1));
 	};
-    
 
 	const handleChange = (value) => {
+		setAfterSearch(false);
 		setSearchCat(value);
 	};
 
-	const [{ data: getProduct, loading, error }] = useAxios(
-		`http://localhost:8000/api/product.php?category=${searchCat}&product=${searchItem}`
+	const [{ data: getProduct }] = useAxios(
+		`http://localhost:8000/api/exist.php?category=${searchCat}&product=${searchItem}`
 	);
 
 	const [{ data: getCategory }] = useAxios(
@@ -29,34 +30,18 @@ const Product = () => {
 	);
 
 	React.useEffect(() => {
-		// getCategory.forEach(element => {
-		//     options.push({
-		//         value: element.name,
-		//         label: element.name,
-		//     })
-		// });
-		let options = [];
+		let newOptions = [];
 		for (let index = 0; index < getCategory?.length; index++) {
 			const element = getCategory[index];
-			options.push({
+			const opt = {
 				value: element?.name,
 				label: element?.name,
-			});
-			setOptions(options);
+			};
+			newOptions.push(opt);
 		}
+
+		setOptions(newOptions);
 	}, [getCategory]);
-	if (loading)
-		return (
-			<div>
-				<Spin
-					tip="Loading"
-					size="large"
-				>
-					<div className="content" />
-				</Spin>
-			</div>
-		);
-	if (error) return <p>Error!</p>;
 
 	return (
 		<div>
@@ -68,35 +53,34 @@ const Product = () => {
 				onChange={handleChange}
 				options={options}
 			/>
+			<div className="product_search">
+				<Search
+					placeholder="Check Product in Selected Category"
+					onSearch={onSearch}
+					enterButton
+					allowClear
+					disabled={afterSearch ? true : false}
+				/>
+			</div>
 
 			<div className="dashboard_products">
 				<Card title={searchCat}>
-					<div className="dashboard_col">
-						{getProduct?.map((product, index) => {
-							return (
-								<div key={index}>
-									{!product?.name ? (
-										<h5>Not found</h5>
-									) : (
-										<Card
-											hoverable
-											style={{
-												width: 240,
-											}}
-											key={index}
-											cover={
-												<img
-													alt="example"
-													src="https://via.placeholder.com/150"
-												/>
-											}
-										>
-											<Meta title={product?.name} />
-										</Card>
-									)}
-								</div>
-							);
-						})}
+					<div className="result_">
+						<h1>
+							{getProduct === true && (
+								<Result
+									icon={<SmileOutlined />}
+									title={`Great, ${searchItem} exist in the Category!`}
+								/>
+							)}
+
+							{getProduct === false && (
+								<Result
+									status="404"
+									title="Product Not found/ Empty Category"
+								/>
+							)}
+						</h1>
 					</div>
 				</Card>
 			</div>
