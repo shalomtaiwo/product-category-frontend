@@ -29,3 +29,9 @@ code {
   margin: 10px 0;
   text-align: center;
 }
+.dashboard_cat{
+  margin-top: 20px;
+}
+.empty_search{
+  margin-top: 10%;
+}

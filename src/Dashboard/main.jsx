@@ -1,38 +1,32 @@
 import React from "react";
-import axios from "axios";
-import { Card } from "antd";
+import useAxios from "axios-hooks";
+import { Card, Spin } from "antd";
 
 const { Meta } = Card;
 
 const Main = () => {
-	const [category, setCategory] = React.useState([]);
+	// const [category, setCategory] = React.useState([]);
 
-	const handleAllCategory = React.useCallback((url, category, product) => {
-		axios
-			.get(url, {
-				params: {
-					category: category,
-					product: product,
-				},
-			})
-			.then(function (response) {
-				setCategory(response?.data);
-			})
-			.catch(function (error) {
-				console.log(error);
-			})
-			.finally(function () {
-				// always executed
-			});
-	}, []);
+	const [{ data, loading, error }] = useAxios(
+		"http://localhost:8000/api/category.php"
+	);
 
-	React.useEffect(() => {
-		handleAllCategory("http://localhost:8000/api/category.php");
-	}, [handleAllCategory]);
+	if (loading)
+		return (
+			<div>
+				<Spin
+					tip="Loading"
+					size="large"
+				>
+					<div className="content" />
+				</Spin>
+			</div>
+		);
+	if (error) return <p>Error!</p>;
 
 	return (
 		<div className="dashboard_category">
-			{category.map((cat, index) => {
+			{data.map((cat, index) => {
 				return (
 					<Card
 						title={cat?.name}
@@ -46,6 +40,7 @@ const Main = () => {
 										style={{
 											width: 240,
 										}}
+                                        key={index}
 										cover={
 											<img
 												alt="example"
